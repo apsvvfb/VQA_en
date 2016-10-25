@@ -1,0 +1,6 @@
+/image_model/*.caffemodel
+*.h5
+*.t7
+*.jpg
+*.png
+*.json
