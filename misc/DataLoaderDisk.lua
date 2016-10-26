@@ -104,6 +104,8 @@ function DataLoader:getBatch(opt)
         self.img_batch = torch.Tensor(batch_size, 14, 14, 2048)
     end
 
+    self.img_ids = torch.Tensor(batch_size)
+
     for i=1,batch_size do
         local ri = self.iterators[split] -- get next index from iterator
         local ri_next = ri + 1 -- increment iterator
@@ -147,6 +149,7 @@ function DataLoader:getBatch(opt)
                 end
             end
         end
+	self.img_ids[i]=img_idx[i]
     end
 
     local data = {}
@@ -163,6 +166,7 @@ function DataLoader:getBatch(opt)
         data.ques_id = self.ques_id_test:index(1, ques_idx)
         data.ques_len = self.ques_len_test:index(1, ques_idx)        
         data.answer = self.ans_test:index(1, ques_idx)        
+	data.img_ids = self.img_ids
     end
     return data
 end

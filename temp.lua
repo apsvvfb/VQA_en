@@ -1,15 +1,13 @@
-require 'os'
-split_test=torch.Tensor({{2,2,2,2,2,2,2,2}})
-split_ix={}
-iterators={}
-for i = 1,split_test:size(1) do 
-	idx = split_test[i] 
-	if not split_ix[idx] then  
-		split_ix[idx] = {} 
-		iterators[idx] = 1 
-	end 
-	--os.exit()
-	table.insert(split_ix[idx], i) 
-end 
-print(split_ix)
-print(iterators)
+require 'hdf5'
+attenmaps=torch.Tensor(100,196)
+imgidx=torch.Tensor(100)
+myFile = hdf5.open('AttenmapsAndImgidx.h5', 'w')
+myFile:write('/attenmaps', attenmaps)
+myFile:write('/imgidx', imgidx)
+myFile:close()
+
+
+myFile = hdf5.open('AttenmapsAndImgidx.h5', 'r')
+data = myFile:read('imgidx'):all()
+myFile:close()
+print(#data)

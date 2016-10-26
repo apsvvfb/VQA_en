@@ -2,7 +2,7 @@
 require 'nn'
 require 'torch'
 require 'optim'
-require 'misc.DataLoader'
+require 'misc.DataLoaderDisk'
 require 'misc.word_level'
 require 'misc.phrase_level'
 require 'misc.ques_level'
@@ -11,6 +11,8 @@ require 'misc.optim_updates'
 local utils = require 'misc.utils'
 require 'xlua'
 
+require 'os'
+require 'hdf5'
 
 cmd = torch.CmdLine()
 cmd:text()
@@ -149,6 +151,9 @@ function eval_split(split)
   local logprob_all = torch.Tensor(total_num, 1000)
   local ques_id = torch.Tensor(total_num)
 
+  attenmaps_all = torch.zeros(total_num,196)
+  imgidx_all = torch.zeros(total_num)
+
   for i = 1, total_num, batch_size do
     xlua.progress(i, total_num)
     local r = math.min(i+batch_size-1, total_num) 
@@ -167,15 +172,27 @@ function eval_split(split)
 
     local q_ques, q_img, q_atten, i_atten = unpack(protos.ques:forward({conv_feat, data.ques_len, img_feat, mask}))
 
+    batchsize_n=r-i+1
+--[[
+print(#i_atten)
+print(#attenmaps_all[{{i,i+batchsize_n-1}}])
+print(#data.img_ids)
+print(#imgidx_all[{{i,i+batchsize_n-1}}])
+os.exit()
+--]]
+    attenmaps_all[{{i,i+batchsize_n-1}}]=i_atten:double()
+    imgidx_all[{{i,i+batchsize_n-1}}]=data.img_ids
+--[[
     local feature_ensemble = {w_ques, w_img, p_ques, p_img, q_ques, q_img}
     local out_feat = protos.atten:forward(feature_ensemble)
 
     logprob_all:sub(i, r):copy(out_feat:float())
     ques_id:sub(i, r):copy(data.ques_id)
+--]]
 
     end
 
-
+--[[
     tmp,pred=torch.max(logprob_all,2);
 
     for i=1,total_num do
@@ -184,10 +201,20 @@ function eval_split(split)
     end
 
   return {predictions}
+--]]
+  return attenmaps_all, imgidx_all
 end
 
+--[[
 predictions = eval_split(2)
-
 utils.write_json('OpenEnded_mscoco_co-atten_results.json', predictions[1])
+utils.write_json('MultipleChoice_mscoco_co-atten_results.json', predictions[2])
+--]]
 
---utils.write_json('MultipleChoice_mscoco_co-atten_results.json', predictions[2])
+attenmaps, imgidx = eval_split(2)
+local myFile = hdf5.open('AttenmapsAndImgidx.h5', 'w')
+myFile:write('/attenmaps', attenmaps)
+myFile:write('/imgidx', imgidx)
+myFile:close()
+
+

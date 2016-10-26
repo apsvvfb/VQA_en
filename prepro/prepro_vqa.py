@@ -157,6 +157,7 @@ def get_unqiue_img(imgs):
 
     unique_img = [w for w,n in count_img.iteritems()]
     imgtoi = {w:i+1 for i,w in enumerate(unique_img)} # add one for torch, since torch start from 1.
+    itoimg = {i+1:w for i,w in enumerate(unique_img)}
 
     for i, img in enumerate(imgs):
         idx = imgtoi.get(img['img_path'])
@@ -175,7 +176,7 @@ def get_unqiue_img(imgs):
         ques_pos_len[idx] = len(ques_list)
         for j in range(len(ques_list)):
             ques_pos[idx][j] = ques_list[j]
-    return unique_img, img_pos, ques_pos, ques_pos_len
+    return unique_img, img_pos, ques_pos, ques_pos_len, itoimg
 
 def main(params):
 
@@ -208,8 +209,8 @@ def main(params):
     ques_test, ques_length_test, question_id_test = encode_question(imgs_test, params, wtoi)
 
     # get the unique image for train and test
-    unique_img_train, img_pos_train, ques_pos_train, ques_pos_len_train = get_unqiue_img(imgs_train)
-    unique_img_test, img_pos_test, ques_pos_test, ques_pos_len_test = get_unqiue_img(imgs_test)
+    unique_img_train, img_pos_train, ques_pos_train, ques_pos_len_train, itoimg_train = get_unqiue_img(imgs_train)
+    unique_img_test, img_pos_test, ques_pos_test, ques_pos_len_test, itoimg_test = get_unqiue_img(imgs_test)
 
     # get the answer encoding.
     ans_train = encode_answer(imgs_train, atoi)
@@ -265,6 +266,7 @@ def main(params):
     out['ix_to_ans'] = itoa
     out['unique_img_train'] = unique_img_train
     out['uniuqe_img_test'] = unique_img_test
+    out['ix_to_img_test']=itoimg_test #img index by na
     json.dump(out, open(params['output_json'], 'w'))
     print 'wrote ', params['output_json']
 
