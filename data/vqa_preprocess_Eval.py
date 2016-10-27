@@ -5,7 +5,9 @@ filename="/home/c-nrong/VQA/draw/Json/question_answers_genome.json"
 trainIDs="/home/c-nrong/VQA/Jan_HieCoAttenVQA/genIDs/trainID.txt"
 testIDs="/home/c-nrong/VQA/Jan_HieCoAttenVQA/genIDs/testID.txt"
 maxNum=8
+outfile="vqa_raw_test.json"
 outfile2="noids.txt"
+
 jfile = json.load(open(filename, 'r'))
 imdir='%s/%s.jpg'
 out=[]
@@ -42,5 +44,5 @@ for i in range(len(jfile)):
 		with open(outfile2,'a') as f:
 		    f.write(image_id+"\n")
 print("there are %d samples!" % len(out))
-json.dump(out, open('vqa_raw_test.json', 'w')) 
+json.dump(out, open(outfile, 'w')) 
 
